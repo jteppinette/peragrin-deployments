@@ -1,0 +1,61 @@
+---
+
+- hosts: "{{ env }}:&swarm:&manager"
+  vars: 
+    - domain: '{% if env == "production" %}peragrin.com{% else %}{{ env }}.peragrin.com{% endif %}'
+  tasks:
+    - name: Create /etc/peragrin Directory
+      file:
+        path: /etc/peragrin
+        state: directory
+
+    - name: Create acme.json File
+      file:
+        path: /etc/peragrin/acme.json
+        state: touch
+        mode: 0700
+
+    - name: Template Files
+      template:
+        src: files/{{ item }}
+        dest: /etc/peragrin/{{ item }}
+        mode: 0700
+      with_items:
+        - docker-compose.yml
+        - traefik.toml
+
+    - name: Generate MySQL WP Password
+      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
+      register: wp_mysql_password
+
+    - name: Generate Database Password
+      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
+      register: database_password
+
+    - name: Generate Token Secret
+      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
+      register: token_secret
+
+    - name: Template .env File
+      template:
+        src: files/secrets.env
+        dest: ~/.env
+        force: no
+        backup: true
+        mode: 0700
+
+    - name: Deploy Stack
+      command: docker stack deploy --with-registry-auth -c /etc/peragrin/docker-compose.yml peragrin
+      register: result
+
+    - name: Deploy Stack Report
+      debug: msg={{result.stdout_lines}}
+      ignore_errors: True
+
+    - name: Stack Services
+      command: docker stack services peragrin
+      register: result
+
+    - name: Stack Services Report
+      debug: msg={{result.stdout_lines}}
+      ignore_errors: True

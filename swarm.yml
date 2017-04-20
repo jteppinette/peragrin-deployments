@@ -1,0 +1,43 @@
+---
+
+- hosts: "{{ env }}:&swarm:&manager"
+  tasks:
+    - name: Node Swarm Status
+      command: docker system info -f {% raw %}{{.Swarm.LocalNodeState}}{% endraw %}
+      register: node_swarm_status
+      changed_when: False
+
+    - name: Initialize Docker Swarm
+      command: docker swarm init --advertise-addr {{ hostvars[inventory_hostname]["do_private_ip_address"] }}
+      when: '"inactive" in node_swarm_status.stdout'
+
+    - name: Retrieve Worker Join Token
+      command: docker swarm join-token worker -q
+      register: worker_join_token
+      changed_when: False
+
+    - name: Worker Join Token
+      debug: msg={{ worker_join_token.stdout }}
+
+- hosts: "swarm:&worker"
+  vars:
+    - manager: '{{ (groups[env] | intersect(groups["swarm"]) | intersect(groups["manager"]))[0] }}'
+  tasks:
+    - name: Node Swarm Status
+      command: docker system info -f {% raw %}{{.Swarm.LocalNodeState}}{% endraw %}
+      register: node_swarm_status
+      changed_when: False
+
+    - name: Join Worker Node
+      command: docker swarm join --token {{ hostvars[manager]["worker_join_token"]["stdout"] }} --advertise-addr {{ hostvars[inventory_hostname]["do_private_ip_address"] }} {{ hostvars[manager]["do_private_ip_address"] }}:2377
+      when: '"inactive" in node_swarm_status.stdout'
+
+- hosts: "swarm:&manager"
+  tasks:
+    - name: Add MySQL Label
+      command: docker node update --label-add mysql=true swarm-worker-zero
+
+- hosts: "swarm:&manager"
+  tasks:
+    - name: Add PostgreSQL Label
+      command: docker node update --label-add postgres=true swarm-worker-one

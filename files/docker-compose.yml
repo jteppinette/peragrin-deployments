@@ -1,0 +1,144 @@
+---
+
+version: "3.1"
+
+volumes:
+  postgres:
+  mysql:
+  wp-content:
+
+networks:
+
+  traefik:
+    driver: overlay
+    driver_opts:
+      encrypted: ""
+
+  wp:
+    driver: overlay
+    driver_opts:
+      encrypted: ""
+
+  app:
+    driver: overlay
+    driver_opts:
+      encrypted: ""
+
+services:
+
+  # TRAEFIK
+  traefik:
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    image: traefik:1.2.1
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/peragrin/acme.json:/acme.json
+      - /etc/peragrin/traefik.toml:/traefik.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
+      - wp
+      - app
+
+  # MYSQL
+  mysql:
+    image: mysql:5.7
+    networks:
+      - wp
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.mysql == true
+    volumes:
+      - mysql:/var/lib/mysql
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: db
+
+  # WP
+  wordpress:
+    depends_on:
+      - mysql
+    image: wordpress:latest
+    env_file: .env
+    networks:
+      - traefik
+      - wp
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: db
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.docker.network=peragrin_traefik"
+        - "traefik.frontend.rule=Host:{{ domain }}"
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.mysql == true
+    volumes:
+      - wp-content:/var/www/html/wp-content
+
+  # POSTGRESQL
+  postgresql:
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.postgres == true
+    image: postgres:9.6.2
+    networks:
+      - app
+    env_file: .env
+    environment:
+      - POSTGRES_USER=db
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  # APP
+  api:
+    image: registry.gitlab.com/peragrin/api
+    networks:
+      traefik:
+      app:
+        aliases:
+          - upstream
+    env_file: .env
+    environment:
+      - DB_NAME=app
+      - DB_PORT=5432
+      - DB_HOST=postgresql
+    deploy:
+      mode: global
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.docker.network=peragrin_traefik"
+        - "traefik.frontend.rule=Host:api.{{ domain }}"
+      placement:
+        constraints:
+          - node.role == worker
+
+  web-client:
+    image: registry.gitlab.com/peragrin/web-client
+    networks:
+      - traefik
+      - app
+    deploy:
+      mode: global
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.docker.network=peragrin_traefik"
+        - "traefik.frontend.rule=Host:app.{{ domain }}"
+      placement:
+        constraints:
+          - node.role == worker

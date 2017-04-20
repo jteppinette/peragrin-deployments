@@ -1,0 +1,5 @@
+ansible-digital_ocean.cache
+.terraform
+*.tfstate.*
+*.tfstate
+*.retry
