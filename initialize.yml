@@ -1,6 +1,6 @@
 ---
 
-- hosts: "swarm:&swarm-worker-one"
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
   vars:
     databases:
       - app
