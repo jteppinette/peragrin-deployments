@@ -13,7 +13,10 @@
     - name: Postgres Container ID
       debug: msg={{ postgres_container_id.stdout }}
 
+    - name: Kill Connections
+      shell: docker exec {{ postgres_container_id.stdout }} psql -U postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = '{{ item }}' AND pid <> pg_backend_pid();"
+      with_items: "{{ databases }}"
+
     - name: Drop Database
       shell: docker exec {{ postgres_container_id.stdout }} psql -U postgres -c 'DROP DATABASE {{ item }}'
       with_items: "{{ databases }}"
-      failed_when: task.stderr != ""
