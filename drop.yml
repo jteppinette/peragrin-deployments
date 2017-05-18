@@ -1,0 +1,19 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  vars:
+    databases:
+      - app
+  tasks:
+    - name: Register Postgres Container ID
+      command: docker ps --filter name=postgres -q
+      register: postgres_container_id
+      changed_when: False
+
+    - name: Postgres Container ID
+      debug: msg={{ postgres_container_id.stdout }}
+
+    - name: Drop Database
+      shell: docker exec {{ postgres_container_id.stdout }} psql -U postgres -c 'DROP DATABASE {{ item }}'
+      with_items: "{{ databases }}"
+      failed_when: task.stderr != ""

@@ -24,7 +24,7 @@
       when: item.rc == 1
       with_items: "{{ task.results }}"
 
-- hosts: "swarm:&worker"
+- hosts: "{{ env }}:&swarm:&worker"
   vars:
     apps:
       - app
