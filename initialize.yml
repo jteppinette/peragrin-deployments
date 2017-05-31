@@ -42,6 +42,18 @@
         dest: /etc/peragrin/fixture
       run_once: True
 
+    - name: Copy Icons Into Remote Fixture Directory
+      copy:
+        src: files/icons
+        dest: /etc/peragrin/fixture
+      run_once: True
+
+    - name: Copy GeoJSON Into Remote Fixture Directory
+      copy:
+        src: files/geojson
+        dest: /etc/peragrin/fixture
+      run_once: True
+
     - name: Register API Container ID
       command: docker ps --filter name=api -q
       register: id
@@ -60,6 +72,14 @@
       shell: docker cp /etc/peragrin/fixture/logos {{ id.stdout }}:/etc/logos
       run_once: True
 
+    - name: Copy Fixture Icons
+      shell: docker cp /etc/peragrin/fixture/icons {{ id.stdout }}:/etc/icons
+      run_once: True
+
+    - name: Copy Fixture GeoJSON
+      shell: docker cp /etc/peragrin/fixture/geojson {{ id.stdout }}:/etc/geojson
+      run_once: True
+
     - name: Create API Fixture Data
-      shell: docker exec {{ id.stdout }} api createfixturedata --fixture-files-dir /etc/logos
+      shell: docker exec {{ id.stdout }} api createfixturedata --fixture-files-dir /etc
       run_once: True
