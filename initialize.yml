@@ -30,7 +30,18 @@
       - app
   tasks:
 
-    # API
+    - name: Create /etc/peragrin/fixture Directory
+      file:
+        path: /etc/peragrin/fixture
+        state: directory
+      run_once: True
+
+    - name: Copy Logos Into Remote Fixture Directory
+      copy:
+        src: files/logos
+        dest: /etc/peragrin/fixture
+      run_once: True
+
     - name: Register API Container ID
       command: docker ps --filter name=api -q
       register: id
@@ -45,6 +56,10 @@
       shell: docker exec {{ id.stdout }} api migrate
       run_once: True
 
+    - name: Copy Fixture Logos
+      shell: docker cp /etc/peragrin/fixture/logos {{ id.stdout }}:/etc/logos
+      run_once: True
+
     - name: Create API Fixture Data
-      shell: docker exec {{ id.stdout }} api createfixturedata
+      shell: docker exec {{ id.stdout }} api createfixturedata --fixture-files-dir /etc/logos
       run_once: True

@@ -24,6 +24,13 @@ resource "digitalocean_record" "app" {
   value  = "@"
 }
 
+resource "digitalocean_record" "minio" {
+  domain = "${digitalocean_domain.root.name}"
+  type   = "CNAME"
+  name   = "minio"
+  value  = "@"
+}
+
 resource "digitalocean_record" "mx" {
   domain = "${digitalocean_domain.root.name}"
   type   = "MX"

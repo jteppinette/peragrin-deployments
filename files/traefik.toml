@@ -20,7 +20,8 @@ onDemand = false
   main = "{{ domain }}"
   sans = [
     "api.{{ domain }}",
-    "app.{{ domain }}"
+    "app.{{ domain }}",
+    "minio.{{ domain }}"
   ]
 
 [docker]

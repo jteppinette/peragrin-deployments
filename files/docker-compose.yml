@@ -4,6 +4,7 @@ version: "3.1"
 
 volumes:
   postgres:
+  minio:
   mysql:
   wp-content:
 
@@ -103,6 +104,28 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
+  # MINIO
+  minio:
+    image: minio/minio
+    env_file: .env
+    command: server /data
+    networks:
+      - traefik
+      - app
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=9000"
+        - "traefik.docker.network=traefik"
+        - "traefik.frontend.rule=Host:minio.{{ domain }}"
+        - "traefik.frontend.passHostHeader=true"
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.minio == true
+    volumes:
+      - minio:/data
+
   # APP
   api:
     image: registry.gitlab.com/peragrin/api
@@ -116,6 +139,8 @@ services:
       - DB_NAME=app
       - DB_PORT=5432
       - DB_HOST=postgresql
+      - STORE_ENDPOINT=minio.{{ domain }}
+      - STORE_SECURE=true
     deploy:
       mode: global
       labels:

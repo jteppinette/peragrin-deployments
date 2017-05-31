@@ -32,6 +32,14 @@
       shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
       register: database_password
 
+    - name: Generate Minio Access Key
+      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo ''
+      register: minio_access_key
+
+    - name: Generate Minio Secret Key
+      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo ''
+      register: minio_secret_key
+
     - name: Generate Token Secret
       shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
       register: token_secret
