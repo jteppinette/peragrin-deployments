@@ -54,6 +54,12 @@
         dest: /etc/peragrin/fixture
       run_once: True
 
+    - name: Copy CSV Into Remote Fixture Directory
+      copy:
+        src: files/csv
+        dest: /etc/peragrin/fixture
+      run_once: True
+
     - name: Register API Container ID
       command: docker ps --filter name=api -q
       register: id
@@ -80,6 +86,10 @@
       shell: docker cp /etc/peragrin/fixture/geojson {{ id.stdout }}:/etc/geojson
       run_once: True
 
-    - name: Create API Fixture Data
-      shell: docker exec {{ id.stdout }} api createfixturedata --fixture-files-dir /etc
+    - name: Copy Fixture CSV
+      shell: docker cp /etc/peragrin/fixture/csv {{ id.stdout }}:/etc/csv
+      run_once: True
+
+    - name: Load ABP
+      shell: docker exec {{ id.stdout }} api loadabp --dir /etc
       run_once: True
