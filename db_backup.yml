@@ -1,0 +1,44 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  vars:
+    databases:
+      - app
+  tasks:
+    - name: Create /etc/peragrin/backups/db Directory
+      file:
+        path: /etc/peragrin/backups/db
+        state: directory
+      run_once: True
+
+    - name: Register Postgres Container ID
+      command: docker ps --filter name=postgres -q
+      register: postgres_container_id
+      changed_when: False
+
+    - name: Postgres Container ID
+      debug: msg={{ postgres_container_id.stdout }}
+
+    - name: Register SQL Dump Filename
+      shell: echo `date +%Y-%m-%d`.sql
+      register: sql_dump_filename
+      changed_when: False
+
+    - name: SQL Dump Filename
+      debug: msg={{ sql_dump_filename.stdout }}
+
+    - name: Create Container Backups Directory
+      shell: docker exec {{ postgres_container_id.stdout }} mkdir -p /etc/backups
+
+    - name: Export SQL Dump
+      shell: docker exec {{ postgres_container_id.stdout }} bash -c "pg_dump -U postgres app > /etc/backups/{{ sql_dump_filename.stdout }}"
+
+    - name: Copy SQL Dump To Host
+      shell: docker cp {{ postgres_container_id.stdout }}:/etc/backups/{{ sql_dump_filename.stdout }} /etc/peragrin/backups/db
+      run_once: True
+
+    - name: Copy SQL Dump To Local
+      fetch:
+        src: /etc/peragrin/backups/db/{{ sql_dump_filename.stdout }}
+        dest: backups/db/{{ sql_dump_filename.stdout }}
+        flat: true

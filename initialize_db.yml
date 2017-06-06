@@ -1,0 +1,25 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  vars:
+    databases:
+      - app
+  tasks:
+    - name: Register Postgres Container ID
+      command: docker ps --filter name=postgres -q
+      register: postgres_container_id
+      changed_when: False
+
+    - name: Postgres Container ID
+      debug: msg={{ postgres_container_id.stdout }}
+
+    - name: Check Postgres Databases
+      shell: docker exec {{ postgres_container_id.stdout }} psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname = '{{ item }}'" | grep -q 1
+      with_items: "{{ databases }}"
+      register: task
+      failed_when: task.stderr != ""
+
+    - name: Initialize Postgres Databases
+      shell: docker exec {{ postgres_container_id.stdout }} psql -U postgres -c 'CREATE DATABASE {{ item.item }} OWNER db'
+      when: item.rc == 1
+      with_items: "{{ task.results }}"

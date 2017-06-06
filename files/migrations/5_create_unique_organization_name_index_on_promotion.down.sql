@@ -1,0 +1,1 @@
+DROP INDEX promotion_organizationid_name_idx;

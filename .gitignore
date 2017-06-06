@@ -3,3 +3,5 @@ ansible-digital_ocean.cache
 *.tfstate.*
 *.tfstate
 *.retry
+backups/db/*.sql
+backups/store/*.tar.gz

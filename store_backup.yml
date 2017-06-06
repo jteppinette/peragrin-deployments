@@ -1,0 +1,41 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  vars:
+    databases:
+      - app
+  tasks:
+    - name: Install Packages
+      apt: name=jq state=present
+
+    - name: Create /etc/peragrin/backups/store Directory
+      file:
+        path: /etc/peragrin/backups/store
+        state: directory
+
+    - name: Register Minio Data Src
+      shell: docker volume inspect peragrin_minio | jq -r ".[0].Mountpoint"
+      register: minio_data_src
+      changed_when: False
+
+    - name: Minio Data Src
+      debug: msg={{ minio_data_src.stdout }}
+
+    - name: Register Minio Archive Filename
+      shell: echo `date +%Y-%m-%d`.tar.gz
+      register: minio_archive_filename
+      changed_when: False
+
+    - name: Minio Archive Filename
+      debug: msg={{ minio_archive_filename.stdout }}
+
+    - name: Create Minio Archive File
+      shell: tar czf /etc/peragrin/backups/store/{{ minio_archive_filename.stdout }} .
+      args:
+        chdir: "{{ minio_data_src.stdout }}"
+
+    - name: Copy Minio Data To Local
+      fetch:
+        src: /etc/peragrin/backups/store/{{ minio_archive_filename.stdout }}
+        dest: backups/store/{{ minio_archive_filename.stdout }}
+        flat: true

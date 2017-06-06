@@ -1,0 +1,25 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  tasks:
+
+    - name: Create /etc/peragrin/migrations Directory
+      file:
+        path: /etc/peragrin/migrations
+        state: directory
+
+    - name: Push Migrations To Remote
+      copy:
+        src: files/migrations/
+        dest: /etc/peragrin/migrations/
+
+    - name: Register API Container ID
+      command: docker ps --filter name=api -q
+      register: id
+      changed_when: False
+
+    - name: API ID
+      debug: msg={{ id.stdout }}
+
+    - name: Copy Migrations To Container
+      shell: docker cp /etc/peragrin/migrations/ {{ id.stdout }}:/etc/migrations

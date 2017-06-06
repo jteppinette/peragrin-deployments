@@ -1,0 +1,15 @@
+---
+
+- hosts: "{{ env }}:&swarm:&swarm-worker-one"
+  tasks:
+
+    - name: Register API Container ID
+      command: docker ps --filter name=api -q
+      register: id
+      changed_when: False
+
+    - name: API ID
+      debug: msg={{ id.stdout }}
+
+    - name: Migrate Database
+      shell: docker exec {{ id.stdout }} api migrate -m /etc/migrations
