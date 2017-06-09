@@ -1,0 +1,1 @@
+ALTER TABLE Promotion ADD COLUMN membershipID int REFERENCES Organization ON DELETE CASCADE;
