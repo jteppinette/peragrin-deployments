@@ -70,3 +70,19 @@ resource "digitalocean_record" "mx-alt-four" {
   value  = "ALT4.ASPMX.L.GOOGLE.COM."
   priority = "10"
 }
+
+resource "digitalocean_record" "DKIM" {
+  domain = "${digitalocean_domain.root.name}"
+  type   = "TXT"
+  name   = "mandrill._domainkey"
+  value  = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrLHiExVd55zd/IQ/J/mRwSRMAocV/hMB3jXwaHH36d9NaVynQFYV8NaWi69c1veUtRzGt7yAioXqLj7Z4TeEUoOLgrKsn8YnckGs9i3B3tVFB+Ch/4mPhXWiNfNdynHWBcPcbJ8kjEQ2U8y78dHZj1YeRXXVvWob2OaKynO8/lQIDAQAB;"
+  priority = "10"
+}
+
+resource "digitalocean_record" "SPF" {
+  domain = "${digitalocean_domain.root.name}"
+  type   = "TXT"
+  name   = "@"
+  value  = "v=spf1 include:spf.mandrillapp.com ?all"
+  priority = "10"
+}
