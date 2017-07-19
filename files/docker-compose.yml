@@ -141,6 +141,7 @@ services:
       - DB_HOST=postgresql
       - STORE_ENDPOINT=minio.{{ domain }}
       - STORE_SECURE=true
+      - APP_DOMAIN=https://app.{{ domain }}
     deploy:
       mode: global
       labels:
