@@ -24,10 +24,6 @@
         - docker-compose.yml
         - traefik.toml
 
-    - name: Generate MySQL WP Password
-      shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
-      register: wp_mysql_password
-
     - name: Generate Database Password
       shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 ; echo '' 
       register: database_password

@@ -34,11 +34,6 @@
 
 - hosts: "{{ env }}:&swarm:&manager"
   tasks:
-    - name: Add MySQL Label
-      command: docker node update --label-add mysql=true swarm-worker-zero
-
-- hosts: "{{ env }}:&swarm:&manager"
-  tasks:
     - name: Add PostgreSQL Label
       command: docker node update --label-add postgres=true swarm-worker-one
 

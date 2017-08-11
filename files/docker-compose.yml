@@ -5,17 +5,10 @@ version: "3.1"
 volumes:
   postgres:
   minio:
-  mysql:
-  wp-content:
 
 networks:
 
   traefik:
-    driver: overlay
-    driver_opts:
-      encrypted: ""
-
-  wp:
     driver: overlay
     driver_opts:
       encrypted: ""
@@ -43,50 +36,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik
-      - wp
       - app
-
-  # MYSQL
-  mysql:
-    image: mysql:5.7
-    networks:
-      - wp
-    deploy:
-      placement:
-        constraints:
-          - node.role == worker
-          - node.labels.mysql == true
-    volumes:
-      - mysql:/var/lib/mysql
-    env_file: .env
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: db
-
-  # WP
-  wordpress:
-    depends_on:
-      - mysql
-    image: wordpress:latest
-    env_file: .env
-    networks:
-      - traefik
-      - wp
-    environment:
-      WORDPRESS_DB_HOST: mysql:3306
-      WORDPRESS_DB_USER: db
-    deploy:
-      labels:
-        - "traefik.enable=true"
-        - "traefik.port=80"
-        - "traefik.docker.network=peragrin_traefik"
-        - "traefik.frontend.rule=Host:{{ domain }}"
-      placement:
-        constraints:
-          - node.role == worker
-          - node.labels.mysql == true
-    volumes:
-      - wp-content:/var/www/html/wp-content
 
   # POSTGRESQL
   postgresql:
@@ -128,7 +78,7 @@ services:
 
   # APP
   api:
-    image: registry.gitlab.com/peragrin/api
+    image: registry.gitlab.com/peragrin/api:master
     networks:
       traefik:
       app:
@@ -154,7 +104,7 @@ services:
           - node.role == worker
 
   web-client:
-    image: registry.gitlab.com/peragrin/web-client
+    image: registry.gitlab.com/peragrin/web-client:master
     networks:
       - traefik
       - app
