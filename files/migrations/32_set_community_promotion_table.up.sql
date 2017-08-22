@@ -1,0 +1,1 @@
+INSERT INTO CommunityPromotion (communityID, promotionID) SELECT Membership.communityID, Promotion.id FROM Promotion INNER JOIN Membership ON (Promotion.membershipID = Membership.id) WHERE Promotion.membershipID IS NOT NULL;
