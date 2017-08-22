@@ -1,0 +1,1 @@
+ALTER TABLE Membership ADD COLUMN price NUMERIC(10, 2);

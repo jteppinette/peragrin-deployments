@@ -1,0 +1,1 @@
+ALTER TABLE Membership ALTER COLUMN price SET NOT NULL;
