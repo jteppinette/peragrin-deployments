@@ -17,12 +17,13 @@ entryPoint = "https"
 onDemand = false
 
 [[acme.domains]]
-  main = "{{ domain }}"
-  sans = [
-    "api.{{ domain }}",
-    "app.{{ domain }}",
-    "minio.{{ domain }}"
-  ]
+  main = "minio.{{ domain }}"
+
+[[acme.domains]]
+  main = "app.{{ domain }}"
+
+[[acme.domains]]
+  main = "api.{{ domain }}"
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
