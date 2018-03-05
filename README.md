@@ -1,4 +1,4 @@
-# Deployments - *terraform resources and ansible scripts to create peragrin.com*
+# Peragrin Deployments - *terraform resources and ansible scripts to create peragrin.com*
 
 ## Use
 
