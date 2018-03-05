@@ -78,7 +78,7 @@ services:
 
   # APP
   api:
-    image: registry.gitlab.com/peragrin/api:master
+    image: peragrin-api:master
     networks:
       traefik:
       app:
@@ -104,7 +104,7 @@ services:
           - node.role == worker
 
   web-client:
-    image: registry.gitlab.com/peragrin/web-client:master
+    image: peragrin-web-client:master
     networks:
       - traefik
       - app
